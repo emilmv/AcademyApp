@@ -1,5 +1,7 @@
 ﻿using Academy.Core.Entities;
 using Academy.Data;
+using Academy.Service.Constants;
+using Academy.Service.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Academy.Service.Services
@@ -16,30 +18,29 @@ namespace Academy.Service.Services
             .AsNoTracking().ToList();
         public Group GetByID(int? id)
         {
-            if (id is null) throw new Exception("");
+            if (id is null) throw new NullInputException(ExceptionMessages.NullInputException);
             var exist = academyDbContext.Groups.AsNoTracking().FirstOrDefault(g => g.ID == id);
-            if (exist is null) throw new Exception("");
+            if (exist is null) throw new NotFoundException(ExceptionMessages.NotFoundException);
             return exist;
         }
         public void Create(Group group)
         {
-            if (academyDbContext.Groups.Any(g => g.Name.Equals(group.Name, StringComparison.OrdinalIgnoreCase))) throw new Exception("");
+            if (academyDbContext.Groups.Any(g => g.Name.ToLower() == group.Name.ToLower())) throw new AlreadyExistsException(ExceptionMessages.AlreadyExistsException);
             academyDbContext.Groups.Add(group);
             academyDbContext.SaveChanges();
         }
         public void Update(int? id, Group group)
         {
-            if (id is null) throw new Exception("");
+            if (id is null) throw new NullInputException(ExceptionMessages.NullInputException);
             var exist = academyDbContext.Groups.FirstOrDefault(g => g.ID == id);
             if (academyDbContext.Groups
-                .Any(g => g.Name.Equals(group.Name, StringComparison.OrdinalIgnoreCase) && g.ID != id)) throw new Exception("");
+                .Any(g => g.Name.ToLower() == group.Name.ToLower() && g.ID != id)) throw new AlreadyExistsException(ExceptionMessages.AlreadyExistsException);
             else
             {
-                exist.Name=group.Name;
-                exist.Limit=group.Limit;
+                exist.Name = group.Name;
+                exist.Limit = group.Limit;
                 academyDbContext.SaveChanges();
             }
-
         }
 
     }
